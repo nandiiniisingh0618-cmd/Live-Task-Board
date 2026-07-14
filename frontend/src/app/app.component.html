@@ -1,0 +1,287 @@
+<div class="scrapbook-board">
+  
+  <!-- Desk Header -->
+  <header class="desk-header">
+    <div class="title-container">
+      <h1 class="desk-title">Live Task Board</h1>
+      <p class="desk-subtitle">A Real-Time Scrapbook Workspace</p>
+    </div>
+
+    <!-- Stats Polaroid -->
+    <div class="header-polaroid">
+      <div class="tape" style="top: -15px; left: 40px; width: 80px;"></div>
+      <div class="polaroid stats-card">
+        <div class="polaroid-img">
+          <div class="stats-grid">
+            <div>
+              <span class="stat-num" style="color: #4a6c6c;">{{ todoTasks.length }}</span>
+              <span>To Do</span>
+            </div>
+            <div>
+              <span class="stat-num" style="color: #6a537d;">{{ inProgressTasks.length }}</span>
+              <span>Active</span>
+            </div>
+            <div>
+              <span class="stat-num" style="color: #5c7d5c;">{{ doneTasks.length }}</span>
+              <span>Done</span>
+            </div>
+          </div>
+        </div>
+        <div class="polaroid-caption">board statistics</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Open Notebook Container -->
+  <main class="notebook-container">
+    
+    <!-- Kanban Grid -->
+    <div class="kanban-grid" cdkDropListGroup>
+      
+      <!-- TO DO COLUMN -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <h2 class="column-title">
+            <span>To Do</span>
+            <span class="task-count">{{ todoTasks.length }}</span>
+          </h2>
+          <!-- SVG Doodle line under header -->
+          <svg width="100%" height="10" style="margin-top: 5px;">
+            <path d="M 0 5 Q 150 2 300 8 T 600 5" fill="none" stroke="#2c2523" stroke-width="1.5" stroke-dasharray="3 3"/>
+          </svg>
+        </div>
+
+        <!-- Add Task Toggle button (Hand-drawn look) -->
+        <button class="btn-ink" style="margin-bottom: 20px;" (click)="toggleAddForm('TO_DO')" *ngIf="!showAddForm['TO_DO']">
+          <svg class="doodle-svg" width="16" height="16" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Jot a task
+        </button>
+
+        <!-- Inline Create Task Form -->
+        <div class="create-card" style="margin-bottom: 20px;" *ngIf="showAddForm['TO_DO']" @cardAnim>
+          <div class="form-group">
+            <input type="text" class="input-ink" placeholder="Title of the task..." [(ngModel)]="newTask['TO_DO'].title" />
+          </div>
+          <div class="form-group">
+            <textarea class="form-textarea" placeholder="Details or notes..." [(ngModel)]="newTask['TO_DO'].description"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="action-btn" (click)="toggleAddForm('TO_DO')" title="Discard">
+              <svg class="doodle-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <button class="btn-ink btn-sm" (click)="submitTask('TO_DO')">Pin It</button>
+          </div>
+        </div>
+
+        <!-- Tasks list -->
+        <div id="TO_DO" cdkDropList [cdkDropListData]="todoTasks" (cdkDropListDropped)="drop($event, 'TO_DO')" class="task-list">
+          
+          <div *ngFor="let task of todoTasks" cdkDrag class="task-card" [style.background-color]="getNoteColor(task.id)" [style.transform]="getRotation(task.id)" @cardAnim>
+            <!-- Tape effect -->
+            <div class="tape task-tape"></div>
+            
+            <!-- Read / Edit toggle -->
+            <div *ngIf="editingTaskId !== task.id; else editTemplate">
+              <div class="card-header">
+                <h3 class="task-title">{{ task.title }}</h3>
+                <span class="task-date">{{ task.createdAt | date:'MMM d, HH:mm' }}</span>
+              </div>
+              <p class="task-description">{{ task.description }}</p>
+              
+              <div class="card-actions">
+                <button class="action-btn" (click)="startEdit(task)" title="Edit">
+                  <svg class="doodle-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+                <button class="action-btn" (click)="deleteTask(task.id)" title="Trash">
+                  <svg class="doodle-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </div>
+            </div>
+            
+            <ng-template #editTemplate>
+              <div class="form-group">
+                <input type="text" class="input-ink" [(ngModel)]="editingTaskData.title" />
+              </div>
+              <div class="form-group">
+                <textarea class="form-textarea" [(ngModel)]="editingTaskData.description"></textarea>
+              </div>
+              <div class="form-actions">
+                <button class="action-btn" (click)="cancelEdit()" title="Cancel">
+                  <svg class="doodle-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <button class="btn-ink btn-sm" (click)="saveEdit(task)">Save</button>
+              </div>
+            </ng-template>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- IN PROGRESS COLUMN -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <h2 class="column-title">
+            <span>In Progress</span>
+            <span class="task-count">{{ inProgressTasks.length }}</span>
+          </h2>
+          <svg width="100%" height="10" style="margin-top: 5px;">
+            <path d="M 0 5 Q 150 8 300 3 T 600 5" fill="none" stroke="#2c2523" stroke-width="1.5" stroke-dasharray="3 3"/>
+          </svg>
+        </div>
+
+        <button class="btn-ink" style="margin-bottom: 20px;" (click)="toggleAddForm('IN_PROGRESS')" *ngIf="!showAddForm['IN_PROGRESS']">
+          <svg class="doodle-svg" width="16" height="16" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Jot a task
+        </button>
+
+        <div class="create-card" style="margin-bottom: 20px;" *ngIf="showAddForm['IN_PROGRESS']" @cardAnim>
+          <div class="form-group">
+            <input type="text" class="input-ink" placeholder="Title of the task..." [(ngModel)]="newTask['IN_PROGRESS'].title" />
+          </div>
+          <div class="form-group">
+            <textarea class="form-textarea" placeholder="Details or notes..." [(ngModel)]="newTask['IN_PROGRESS'].description"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="action-btn" (click)="toggleAddForm('IN_PROGRESS')" title="Discard">
+              <svg class="doodle-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <button class="btn-ink btn-sm" (click)="submitTask('IN_PROGRESS')">Pin It</button>
+          </div>
+        </div>
+
+        <div id="IN_PROGRESS" cdkDropList [cdkDropListData]="inProgressTasks" (cdkDropListDropped)="drop($event, 'IN_PROGRESS')" class="task-list">
+          
+          <div *ngFor="let task of inProgressTasks" cdkDrag class="task-card" [style.background-color]="getNoteColor(task.id)" [style.transform]="getRotation(task.id)" @cardAnim>
+            <div class="tape task-tape"></div>
+            
+            <div *ngIf="editingTaskId !== task.id; else editTemplate">
+              <div class="card-header">
+                <h3 class="task-title">{{ task.title }}</h3>
+                <span class="task-date">{{ task.createdAt | date:'MMM d, HH:mm' }}</span>
+              </div>
+              <p class="task-description">{{ task.description }}</p>
+              
+              <div class="card-actions">
+                <button class="action-btn" (click)="startEdit(task)" title="Edit">
+                  <svg class="doodle-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+                <button class="action-btn" (click)="deleteTask(task.id)" title="Trash">
+                  <svg class="doodle-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </div>
+            </div>
+            
+            <ng-template #editTemplate>
+              <div class="form-group">
+                <input type="text" class="input-ink" [(ngModel)]="editingTaskData.title" />
+              </div>
+              <div class="form-group">
+                <textarea class="form-textarea" [(ngModel)]="editingTaskData.description"></textarea>
+              </div>
+              <div class="form-actions">
+                <button class="action-btn" (click)="cancelEdit()" title="Cancel">
+                  <svg class="doodle-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <button class="btn-ink btn-sm" (click)="saveEdit(task)">Save</button>
+              </div>
+            </ng-template>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DONE COLUMN -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <h2 class="column-title">
+            <span>Done</span>
+            <span class="task-count">{{ doneTasks.length }}</span>
+          </h2>
+          <svg width="100%" height="10" style="margin-top: 5px;">
+            <path d="M 0 5 Q 150 3 300 7 T 600 5" fill="none" stroke="#2c2523" stroke-width="1.5" stroke-dasharray="3 3"/>
+          </svg>
+        </div>
+
+        <button class="btn-ink" style="margin-bottom: 20px;" (click)="toggleAddForm('DONE')" *ngIf="!showAddForm['DONE']">
+          <svg class="doodle-svg" width="16" height="16" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Jot a task
+        </button>
+
+        <div class="create-card" style="margin-bottom: 20px;" *ngIf="showAddForm['DONE']" @cardAnim>
+          <div class="form-group">
+            <input type="text" class="input-ink" placeholder="Title of the task..." [(ngModel)]="newTask['DONE'].title" />
+          </div>
+          <div class="form-group">
+            <textarea class="form-textarea" placeholder="Details or notes..." [(ngModel)]="newTask['DONE'].description"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="action-btn" (click)="toggleAddForm('DONE')" title="Discard">
+              <svg class="doodle-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <button class="btn-ink btn-sm" (click)="submitTask('DONE')">Pin It</button>
+          </div>
+        </div>
+
+        <div id="DONE" cdkDropList [cdkDropListData]="doneTasks" (cdkDropListDropped)="drop($event, 'DONE')" class="task-list">
+          
+          <div *ngFor="let task of doneTasks" cdkDrag class="task-card" [style.background-color]="getNoteColor(task.id)" [style.transform]="getRotation(task.id)" @cardAnim>
+            <div class="tape task-tape"></div>
+            
+            <div *ngIf="editingTaskId !== task.id; else editTemplate">
+              <div class="card-header">
+                <h3 class="task-title done-strike">{{ task.title }}</h3>
+                <span class="task-date">{{ task.createdAt | date:'MMM d, HH:mm' }}</span>
+              </div>
+              <p class="task-description done-strike">{{ task.description }}</p>
+              
+              <div class="card-actions">
+                <button class="action-btn" (click)="startEdit(task)" title="Edit">
+                  <svg class="doodle-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+                <button class="action-btn" (click)="deleteTask(task.id)" title="Trash">
+                  <svg class="doodle-svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </div>
+            </div>
+            
+            <ng-template #editTemplate>
+              <div class="form-group">
+                <input type="text" class="input-ink" [(ngModel)]="editingTaskData.title" />
+              </div>
+              <div class="form-group">
+                <textarea class="form-textarea" [(ngModel)]="editingTaskData.description"></textarea>
+              </div>
+              <div class="form-actions">
+                <button class="action-btn" (click)="cancelEdit()" title="Cancel">
+                  <svg class="doodle-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <button class="btn-ink btn-sm" (click)="saveEdit(task)">Save</button>
+              </div>
+            </ng-template>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Real-Time WebSocket Toast Notifications -->
+  <div class="notifications-container">
+    <div *ngFor="let notification of notifications" class="retro-toast" [ngClass]="notification.action" @notificationAnim>
+      <div class="toast-badge">{{ notification.action }}</div>
+      <div class="toast-message">{{ notification.message }}</div>
+    </div>
+  </div>
+
+</div>
