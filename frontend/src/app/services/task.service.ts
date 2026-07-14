@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { Client } from '@stomp/stompjs';
+import { environment } from '../../environments/environment';
 
 export interface Task {
   id?: number;
@@ -23,8 +24,8 @@ export interface TaskEvent {
   providedIn: 'root'
 })
 export class TaskService {
-  private apiUrl = 'http://localhost:8080/api/tasks';
-  private wsUrl = 'ws://localhost:8080/ws';
+  private apiUrl = `${environment.apiUrl}/api/tasks`;
+  private wsUrl = environment.wsUrl;
   
   private stompClient: Client | null = null;
   private eventSubject = new Subject<TaskEvent>();
